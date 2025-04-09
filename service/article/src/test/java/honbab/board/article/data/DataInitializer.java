@@ -20,7 +20,7 @@ public class DataInitializer {
     @Autowired
     TransactionTemplate transactionTemplate;
     Snowflake snowflake = new Snowflake();
-    CountDownLatch latch = new CountDownLatch(EXECUTE_COUNT);
+    CountDownLatch latch = new CountDownLatch(EXECUTE_COUNT); // 호출 횟수 카운트 및 알람
 
     static final int BULK_INSERT_SIZE = 2000;
     static final int EXECUTE_COUNT = 6000;
@@ -28,16 +28,16 @@ public class DataInitializer {
 
     @Test
     void initialize() throws InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(10); // 10개의 쓰레드로 insert 작업 지시
         for(int i = 0; i < EXECUTE_COUNT; i++) {
             executorService.submit(() -> {
-                insert();
+                insert(); // 내부 transactional 호출로 transactionTemplate 사용
                 latch.countDown();
                 System.out.println("latch.getCount() = " + latch.getCount());
             });
         }
         latch.await();
-        executorService.shutdown();
+        executorService.shutdown(); // 종료
     }
 
     void insert() {
